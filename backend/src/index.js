@@ -1,14 +1,12 @@
-import express from "express";
-import { Server } from "socket.io";
-import { createServer } from "http";
-import cors from "cors";
-import jwt from "jsonwebtoken";
-import cookieParser from "cookie-parser";
-
-const port = 3000;
-
+const express = require("express");
+const { Server } = require("socket.io");
 const app = express();
+const { createServer } = require("http");
+app.use(express.json());
+const cors = require("cors");
+
 const server = createServer(app);
+
 const io = new Server(server, {
   cors: {
     origin: "http://localhost:5173",
@@ -17,46 +15,27 @@ const io = new Server(server, {
   },
 });
 
-app.use(
-  cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
+// app.use(cors({credentials: true, origin: 'http://localhost:5173'}));
+app.use(cors());
 
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
-
-app.get("/login", (req, res) => {
-  const token = jwt.sign({ _id: "asdasjdhkasdasdas" }, secretKeyJWT);
-
-  res
-    .cookie("token", token, { httpOnly: true, secure: true, sameSite: "none" })
-    .json({
-      message: "Login Success",
-    });
-});
-
+io.on("error", (err) => console.log(err.message));
 
 io.on("connection", (socket) => {
-  console.log("User Connected", socket.id);
+  console.log("user connected : " + socket.id);
 
-  socket.on("message", (message) => {
-    console.log(message);
+  socket.on("message", (msg) => {
+    console.log(msg);
+    socket.broadcast("msg", msg);
   });
-
-  socket.on("join-room", (room) => {
-    socket.join(room);
-    console.log(`User joined room ${room}`);
-  });
-
   socket.on("disconnect", () => {
-    console.log("User Disconnected", socket.id);
+    console.log("user disconnected :" + socket.id);
   });
 });
 
-server.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
+app.get("/", (req, res) => {
+  res.send("Server is running on port ");
 });
+
+const port = 3000;
+
+server.listen(port, () => console.log("listening on port : " + port));

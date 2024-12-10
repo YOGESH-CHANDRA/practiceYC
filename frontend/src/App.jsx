@@ -1,10 +1,10 @@
-
-import React, { useEffect, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 
+import React, { useEffect, useMemo, useState } from "react";
+
 const App = () => {
-// const [inputValue,setInutValue] =useState("");
-const [messages, setMessages] = useState("");
+  const [msg, setMsg] = useState("");
+  const [room, setRoom] = useState("");
 
   const socket = useMemo(
     () =>
@@ -14,28 +14,19 @@ const [messages, setMessages] = useState("");
     []
   );
 
-
-const submitHandler=(e)=>{
-  e.preventDefault();
-  socket.emit("message", messages);
-  setMessages("");
-  
-}
-
+  const submitHandler = (e) => {
+    e.preventDefault();
+    socket.emit("message", msg);
+    setMsg("");
+  };
 
   useEffect(() => {
-    socket.on("connect", (socket) => {
-      
-      console.log("connected",socket, socket?.id);
+    socket.on("connect", () => {
+      console.log("Connected to the server ", socket.id);
     });
 
-    socket.on("receive-message", (data) => {
-      console.log(data);
-      setMessages((messages) => [...messages, data]);
-    });
-
-    socket.on("welcome", (s) => {
-      console.log(s);
+    socket.on("disconnect", () => {
+      console.log("Disconnected from the server ", socket.id);
     });
 
     return () => {
@@ -44,14 +35,22 @@ const submitHandler=(e)=>{
   }, []);
 
   return (
-   <>
-    <h1>HI i am yogesh chandra</h1>
-    <form onSubmit={submitHandler}>
-      <input type="text" onChange={(e)=>setMessages(e.target.value)} value={messages}/>
-      <button type="submit">submit</button>
-    </form>
-   
-   </>
+    <div className="m-10 border border-red-500 p-5">
+      <div className="text-center">App</div>
+      <form className="flex justify-center my-5" onSubmit={submitHandler}>
+        <input
+          className="border border-red-200 w-1/2 p-2"
+          type="text"
+          id="message"
+          placeholder="enter your message here "
+          value={msg}
+          onChange={(e) => setMsg(e.target.value)}
+        />
+        <button type="submit" className="mx-6">
+          Submit
+        </button>
+      </form>
+    </div>
   );
 };
 
